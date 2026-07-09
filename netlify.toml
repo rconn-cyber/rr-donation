@@ -7,3 +7,6 @@
   [headers.values]
     Content-Security-Policy = "default-src 'self'; script-src 'self' https://js.stripe.com; frame-src https://js.stripe.com https://hooks.stripe.com; connect-src 'self' https://api.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tamparoughriders.org;"
     X-Frame-Options = "SAMEORIGIN"
+
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "STRIPE_PUBLISHABLE_KEY"
