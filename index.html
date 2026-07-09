@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="stripe-pk" content="STRIPE_PUBLISHABLE_KEY">
+  <meta name="stripe-pk" content="pk_live_tOC3yVZcKWUUynwdigM6qZgL">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Donate — 1st U.S. Volunteer Cavalry Regiment – Rough Riders</title>
   <style>
@@ -176,7 +176,7 @@
   <script src="https://js.stripe.com/v3/"></script>
   <script>
   (function() {
-    var stripe = Stripe(document.querySelector('meta[name=stripe-pk]').content);
+    var stripe = Stripe('pk_live_tOC3yVZcKWUUynwdigM6qZgL');
     var elements = stripe.elements({
       fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Lato:wght@400&display=swap' }]
     });
