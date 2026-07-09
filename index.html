@@ -2,19 +2,272 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="stripe-pk" content="STRIPE_PUBLISHABLE_KEY">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rough Riders Donation</title>
+  <title>Donate — 1st U.S. Volunteer Cavalry Regiment – Rough Riders</title>
   <style>
-    body { background: #0d1f3c; color: #c9a84c; font-family: Arial, sans-serif;
-           display: flex; align-items: center; justify-content: center; min-height: 100vh; text-align: center; }
-    h1 { font-size: 1.2rem; letter-spacing: 0.1em; }
-    p  { color: #8a9ab5; margin-top: 12px; font-size: 0.9rem; }
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Lato', Arial, sans-serif; background: #0a0f1e; color: #f5f0e8; min-height: 100vh; padding: 40px 16px 60px; }
+    .rrd { max-width: 780px; margin: 0 auto; }
+
+    .rrd-header { text-align: center; margin-bottom: 36px; }
+    .rrd-header-label { font-family: 'Cinzel', serif; font-size: 11px; color: #c9a84c; letter-spacing: 0.25em; text-transform: uppercase; opacity: 0.8; margin-bottom: 8px; }
+    .rrd-header-title { font-family: 'Cinzel', serif; font-size: clamp(22px,3.5vw,34px); color: #c9a84c; margin-bottom: 10px; }
+    .rrd-header-rule { width: 60px; border: none; border-top: 2px solid rgba(201,168,76,0.4); margin: 0 auto 16px; }
+    .rrd-header p { font-size: 15px; color: rgba(245,240,232,0.7); line-height: 1.65; max-width: 560px; margin: 0 auto; }
+
+    .rrd-amounts { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 28px 0 20px; }
+    .rrd-amt-btn { padding: 12px 20px; font-family: 'Cinzel', serif; font-size: 15px; color: #c9a84c; border: 2px solid rgba(201,168,76,0.45); border-radius: 3px; background: rgba(6,15,30,0.6); cursor: pointer; transition: all 0.2s; letter-spacing: 0.04em; min-width: 90px; text-align: center; }
+    .rrd-amt-btn:hover { border-color: #c9a84c; background: rgba(201,168,76,0.1); }
+    .rrd-amt-btn.active { background: #c9a84c; color: #060f1e; border-color: #c9a84c; font-weight: bold; }
+    .rrd-amt-btn.active .rrd-amt-sub { opacity: 1; color: #060f1e; }
+    .rrd-amt-sub { display: block; font-family: 'Lato', sans-serif; font-size: 9px; letter-spacing: 0.06em; margin-top: 3px; opacity: 0.6; text-transform: uppercase; }
+
+    .rrd-custom-wrap { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 28px; }
+    .rrd-custom-wrap label { font-family: 'Cinzel', serif; font-size: 12px; color: #c9a84c; letter-spacing: 0.1em; text-transform: uppercase; }
+    .rrd-custom-input { width: 130px; padding: 10px 14px; background: rgba(6,15,30,0.8); border: 1px solid rgba(201,168,76,0.3); border-radius: 3px; color: #f5f0e8; font-size: 16px; text-align: center; }
+    .rrd-custom-input:focus { border-color: #c9a84c; outline: none; }
+
+    .rrd-card { background: rgba(6,15,30,0.6); border: 1px solid rgba(201,168,76,0.2); border-radius: 6px; padding: 32px; }
+    @media (max-width:600px) { .rrd-card { padding: 20px 16px; } }
+
+    .rrd-section-title { font-family: 'Cinzel', serif; font-size: 11px; color: #c9a84c; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 18px; padding-bottom: 8px; border-bottom: 1px solid rgba(201,168,76,0.15); }
+    .rrd-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .rrd-row.full { grid-template-columns: 1fr; }
+    .rrd-row.three { grid-template-columns: 2fr 1fr 1fr; }
+    @media (max-width:560px) { .rrd-row, .rrd-row.three { grid-template-columns: 1fr; } }
+
+    .rrd-field { display: flex; flex-direction: column; gap: 6px; }
+    .rrd-field label { font-family: 'Cinzel', serif; font-size: 11px; color: #c9a84c; letter-spacing: 0.1em; text-transform: uppercase; }
+    .rrd-field .req { color: rgba(201,168,76,0.6); }
+    .rrd-field input, .rrd-field select, .rrd-field textarea { padding: 10px 14px; background: rgba(6,15,30,0.8); border: 1px solid rgba(201,168,76,0.25); border-radius: 3px; color: #f5f0e8; font-family: 'Lato', sans-serif; font-size: 14px; transition: border-color 0.2s; }
+    .rrd-field input:focus, .rrd-field select:focus, .rrd-field textarea:focus { border-color: #c9a84c; outline: none; box-shadow: 0 0 0 2px rgba(201,168,76,0.12); }
+    .rrd-field select option { background: #0d1f3c; color: #f5f0e8; }
+    .rrd-field textarea { resize: vertical; min-height: 80px; }
+    .rrd-divider { border: none; border-top: 1px solid rgba(201,168,76,0.12); margin: 24px 0; }
+
+    .rrd-stripe-wrap { background: rgba(6,15,30,0.8); border: 1px solid rgba(201,168,76,0.25); border-radius: 3px; padding: 12px 14px; transition: border-color 0.2s; }
+    .rrd-stripe-wrap.focused { border-color: #c9a84c; }
+
+    .rrd-submit-btn { width: 100%; padding: 16px; background: #c9a84c; color: #060f1e; border: none; border-radius: 3px; font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; margin-top: 24px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .rrd-submit-btn:hover:not(:disabled) { background: #e8c96a; }
+    .rrd-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .rrd-error { background: rgba(220,53,69,0.15); border: 1px solid rgba(220,53,69,0.4); border-radius: 3px; padding: 12px 16px; font-size: 14px; color: #ff8a95; margin-top: 16px; display: none; }
+    .rrd-success { background: rgba(6,15,30,0.7); border: 1px solid rgba(201,168,76,0.3); border-radius: 6px; padding: 40px 32px; text-align: center; display: none; margin-top: 24px; }
+    .rrd-success-icon { font-size: 52px; margin-bottom: 16px; }
+    .rrd-success h3 { font-family: 'Cinzel', serif; color: #c9a84c; font-size: 24px; margin-bottom: 12px; }
+    .rrd-success p { color: rgba(245,240,232,0.8); font-size: 15px; line-height: 1.7; }
+
+    .rrd-trust { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(201,168,76,0.1); }
+    .rrd-trust-item { font-size: 12px; color: rgba(245,240,232,0.35); display: flex; align-items: center; gap: 6px; }
+
+    .logo-bar { text-align: center; margin-bottom: 32px; }
+    .logo-bar img { width: 90px; height: auto; margin-bottom: 12px; }
+    .logo-bar p { font-size: 0.75rem; color: #8a9ab5; letter-spacing: 0.08em; text-transform: uppercase; }
   </style>
 </head>
 <body>
-  <div>
-    <h1>1st U.S. Volunteer Cavalry Regiment — Rough Riders</h1>
-    <p>Donation processing endpoint. Please visit <a href="https://tamparoughriders.org" style="color:#c9a84c;">tamparoughriders.org</a> to donate.</p>
+  <div class="rrd">
+
+    <div class="logo-bar">
+      <img src="https://tamparoughriders.org/resources/Pictures/RR-Logo-white.png" onerror="this.style.display='none'" alt="Rough Riders" />
+      <p>1st U.S. Volunteer Cavalry Regiment &nbsp;·&nbsp; Tampa, FL</p>
+    </div>
+
+    <div class="rrd-header">
+      <div class="rrd-header-label">Support Our Mission</div>
+      <div class="rrd-header-title">Make a Donation</div>
+      <hr class="rrd-header-rule">
+      <p>Your donation supports the preservation of the Museum and Library, educational programs, community outreach, our Teddy Bear charity program, and the ongoing mission to keep the legacy of the Rough Riders alive for future generations. The 1st U.S. Volunteer Cavalry Regiment &ndash; Rough Riders, Inc. is a 501(c)(3) nonprofit. All donations are tax-deductible.</p>
+    </div>
+
+    <div class="rrd-amounts">
+      <button class="rrd-amt-btn" type="button" data-amount="20">$20<span class="rrd-amt-sub">1 Teddy Bear</span></button>
+      <button class="rrd-amt-btn active" type="button" data-amount="100">$100<span class="rrd-amt-sub">5 Teddy Bears</span></button>
+      <button class="rrd-amt-btn" type="button" data-amount="400">$400<span class="rrd-amt-sub">20 Teddy Bears</span></button>
+      <button class="rrd-amt-btn" type="button" data-amount="1000">$1,000<span class="rrd-amt-sub">50 Teddy Bears</span></button>
+      <button class="rrd-amt-btn" type="button" data-amount="custom">Custom<span class="rrd-amt-sub">Your amount</span></button>
+    </div>
+    <div class="rrd-custom-wrap" id="rrd-custom-row" style="display:none;">
+      <label for="rrd-custom-amt">$ USD</label>
+      <input type="number" id="rrd-custom-amt" class="rrd-custom-input" placeholder="0.00" min="1" step="1" />
+    </div>
+
+    <div class="rrd-card" id="rrd-form-card">
+      <div class="rrd-section-title">Contact Information</div>
+      <div class="rrd-row">
+        <div class="rrd-field"><label>First Name <span class="req">*</span></label><input type="text" id="rrd-fname" placeholder="First name" /></div>
+        <div class="rrd-field"><label>Last Name <span class="req">*</span></label><input type="text" id="rrd-lname" placeholder="Last name" /></div>
+      </div>
+      <div class="rrd-row">
+        <div class="rrd-field"><label>Email <span class="req">*</span></label><input type="email" id="rrd-email" placeholder="your@email.com" /></div>
+        <div class="rrd-field"><label>Phone</label><input type="tel" id="rrd-phone" placeholder="(813) 000-0000" /></div>
+      </div>
+      <div class="rrd-row full">
+        <div class="rrd-field"><label>Street Address <span class="req">*</span></label><input type="text" id="rrd-address" placeholder="Street address" /></div>
+      </div>
+      <div class="rrd-row three">
+        <div class="rrd-field"><label>City <span class="req">*</span></label><input type="text" id="rrd-city" placeholder="City" /></div>
+        <div class="rrd-field"><label>State <span class="req">*</span></label><input type="text" id="rrd-state" placeholder="FL" maxlength="2" /></div>
+        <div class="rrd-field"><label>ZIP <span class="req">*</span></label><input type="text" id="rrd-zip" placeholder="33605" maxlength="10" /></div>
+      </div>
+      <div class="rrd-row">
+        <div class="rrd-field"><label>Company / Organization</label><input type="text" id="rrd-company" placeholder="Optional" /></div>
+        <div class="rrd-field"><label>Your Rough Rider Contact</label><input type="text" id="rrd-contact" placeholder="Member name (optional)" /></div>
+      </div>
+
+      <hr class="rrd-divider">
+      <div class="rrd-section-title">Donation Details</div>
+      <div class="rrd-row full">
+        <div class="rrd-field">
+          <label>Direct My Donation To <span class="req">*</span></label>
+          <select id="rrd-fund">
+            <option value="" disabled selected>Select a fund...</option>
+            <option>Teddy Roosevelt Museum</option>
+            <option>Rough Riders Historical Murals and Markers</option>
+            <option>John Winter Teddy Bear Fund</option>
+            <option>RR Charity Fishing Tournament</option>
+            <option>RR Charity Golf Tournament</option>
+            <option>Rough Riders Scholarships (UT students)</option>
+            <option>Rough Riders Charities (various community donations)</option>
+            <option>General Donation</option>
+          </select>
+        </div>
+      </div>
+      <div class="rrd-row full">
+        <div class="rrd-field"><label>Comments / Dedication</label><textarea id="rrd-comment" placeholder="In memory of, in honor of, or any message..."></textarea></div>
+      </div>
+
+      <hr class="rrd-divider">
+      <div class="rrd-section-title">&#x1F4B3;&nbsp; Payment Information</div>
+      <div class="rrd-field" style="margin-bottom:16px;">
+        <label>Card Details <span class="req">*</span></label>
+        <div class="rrd-stripe-wrap" id="rrd-card-element"></div>
+      </div>
+
+      <div class="rrd-error" id="rrd-error"></div>
+
+      <button class="rrd-submit-btn" id="rrd-submit-btn" type="button">
+        <span id="rrd-btn-label">&#x1F512;&nbsp; Donate $100</span>
+      </button>
+
+      <div class="rrd-trust">
+        <div class="rrd-trust-item">&#x1F512; SSL Encrypted &middot; Secured by Stripe</div>
+        <div class="rrd-trust-item">&#x1F9FE; 501(c)(3) &middot; EIN 59-1867553</div>
+        <div class="rrd-trust-item">&#x2709;&#xFE0F; Receipt sent to your email</div>
+      </div>
+    </div>
+
+    <div class="rrd-success" id="rrd-success">
+      <div class="rrd-success-icon">&#x1F396;&#xFE0F;</div>
+      <h3>Thank You, Patriot!</h3>
+      <p>
+        Your generous donation to the 1st U.S. Volunteer Cavalry Regiment &ndash; Rough Riders, Inc.
+        has been received. A confirmation receipt will be sent to your email address.<br><br>
+        Your gift is tax-deductible &middot; EIN 59-1867553<br><br>
+        <strong style="color:#c9a84c;font-family:'Cinzel',serif;letter-spacing:0.1em;font-size:20px;">Bully!</strong>
+      </p>
+    </div>
+
   </div>
+
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+  (function() {
+    var stripe = Stripe(document.querySelector('meta[name=stripe-pk]').content);
+    var elements = stripe.elements({
+      fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Lato:wght@400&display=swap' }]
+    });
+    var cardElement = elements.create('card', {
+      style: {
+        base: { color: '#f5f0e8', fontFamily: 'Lato, Arial, sans-serif', fontSize: '15px', fontSmoothing: 'antialiased', '::placeholder': { color: 'rgba(245,240,232,0.35)' }, iconColor: '#c9a84c' },
+        invalid: { color: '#ff8a95', iconColor: '#ff8a95' }
+      }
+    });
+    cardElement.mount('#rrd-card-element');
+    cardElement.on('focus', function() { document.getElementById('rrd-card-element').closest('.rrd-stripe-wrap').classList.add('focused'); });
+    cardElement.on('blur',  function() { document.getElementById('rrd-card-element').closest('.rrd-stripe-wrap').classList.remove('focused'); });
+
+    var selectedAmount = 100;
+    function updateButtonLabel() {
+      document.getElementById('rrd-btn-label').textContent = '\uD83D\uDD12\u00A0 Donate $' + Number(selectedAmount).toLocaleString();
+    }
+
+    document.querySelectorAll('.rrd-amt-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.rrd-amt-btn').forEach(function(b) { b.classList.remove('active'); });
+        this.classList.add('active');
+        var val = this.getAttribute('data-amount');
+        if (val === 'custom') {
+          document.getElementById('rrd-custom-row').style.display = 'flex';
+          document.getElementById('rrd-custom-amt').focus();
+          var cv = parseFloat(document.getElementById('rrd-custom-amt').value);
+          selectedAmount = cv > 0 ? cv : null;
+        } else {
+          document.getElementById('rrd-custom-row').style.display = 'none';
+          selectedAmount = parseInt(val);
+        }
+        updateButtonLabel();
+      });
+    });
+
+    document.getElementById('rrd-custom-amt').addEventListener('input', function() {
+      var v = parseFloat(this.value);
+      selectedAmount = v > 0 ? v : null;
+      if (selectedAmount) updateButtonLabel();
+    });
+
+    document.getElementById('rrd-submit-btn').addEventListener('click', async function() {
+      var btn = this;
+      var errorEl = document.getElementById('rrd-error');
+      errorEl.style.display = 'none';
+
+      if (!selectedAmount || selectedAmount < 1) { errorEl.textContent = 'Please select or enter a donation amount.'; errorEl.style.display = 'block'; return; }
+      var fname   = document.getElementById('rrd-fname').value.trim();
+      var lname   = document.getElementById('rrd-lname').value.trim();
+      var email   = document.getElementById('rrd-email').value.trim();
+      var address = document.getElementById('rrd-address').value.trim();
+      var city    = document.getElementById('rrd-city').value.trim();
+      var state   = document.getElementById('rrd-state').value.trim();
+      var zip     = document.getElementById('rrd-zip').value.trim();
+      var fund    = document.getElementById('rrd-fund').value;
+      if (!fname || !lname || !email || !address || !city || !state || !zip || !fund) {
+        errorEl.textContent = 'Please fill in all required fields.'; errorEl.style.display = 'block'; return;
+      }
+
+      btn.disabled = true;
+      document.getElementById('rrd-btn-label').textContent = 'Processing...';
+
+      try {
+        var pmResult = await stripe.createPaymentMethod({
+          type: 'card', card: cardElement,
+          billing_details: { name: fname+' '+lname, email: email, phone: document.getElementById('rrd-phone').value.trim()||undefined, address: { line1: address, city: city, state: state, postal_code: zip, country: 'US' } }
+        });
+        if (pmResult.error) { errorEl.textContent = pmResult.error.message; errorEl.style.display = 'block'; btn.disabled = false; updateButtonLabel(); return; }
+
+        var response = await fetch('/.netlify/functions/donate', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ paymentMethodId: pmResult.paymentMethod.id, amount: Math.round(selectedAmount*100), currency: 'usd', donorName: fname+' '+lname, donorEmail: email, fund: fund, phone: document.getElementById('rrd-phone').value.trim(), address: address+', '+city+', '+state+' '+zip, company: document.getElementById('rrd-company').value.trim(), contact: document.getElementById('rrd-contact').value.trim(), comment: document.getElementById('rrd-comment').value.trim() })
+        });
+        var result = await response.json();
+        if (result.error) { errorEl.textContent = result.error; errorEl.style.display = 'block'; btn.disabled = false; updateButtonLabel(); return; }
+        if (result.requiresAction) {
+          var confirmResult = await stripe.confirmCardPayment(result.clientSecret);
+          if (confirmResult.error) { errorEl.textContent = confirmResult.error.message; errorEl.style.display = 'block'; btn.disabled = false; updateButtonLabel(); return; }
+        }
+        document.getElementById('rrd-form-card').style.display = 'none';
+        document.querySelectorAll('.rrd-amounts,.rrd-custom-wrap').forEach(function(el){ el.style.opacity='0.3'; el.style.pointerEvents='none'; });
+        document.getElementById('rrd-success').style.display = 'block';
+      } catch(err) {
+        errorEl.textContent = 'An unexpected error occurred. Please try again or call (813) 248-1898.';
+        errorEl.style.display = 'block'; btn.disabled = false; updateButtonLabel();
+      }
+    });
+
+    updateButtonLabel();
+  })();
+  </script>
 </body>
 </html>
