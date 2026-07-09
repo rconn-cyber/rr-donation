@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Donate — 1st U.S. Volunteer Cavalry Regiment – Rough Riders</title>
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #0a0f1e;
+      color: #e8e0d0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px 60px;
+    }
+
+    .logo-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .logo-bar img {
+      width: 100px;
+      height: auto;
+    }
+
+    .logo-bar h1 {
+      font-size: 1.1rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #c9a84c;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .logo-bar p {
+      font-size: 0.8rem;
+      color: #8a9ab5;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .card {
+      background: #0d1f3c;
+      border: 1px solid #1e3a6e;
+      border-radius: 10px;
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    /* Amount picker */
+    .amount-section { margin-bottom: 28px; }
+
+    .section-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #c9a84c;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .amount-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .amt-btn {
+      background: #0a1628;
+      border: 1px solid #1e3a6e;
+      border-radius: 6px;
+      color: #e8e0d0;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 12px 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.05em;
+    }
+
+    .amt-btn:hover { border-color: #c9a84c; color: #c9a84c; }
+    .amt-btn.selected { background: #c9a84c; border-color: #c9a84c; color: #0d1f3c; }
+
+    .custom-amount-wrap {
+      position: relative;
+    }
+
+    .custom-amount-wrap span {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8a9ab5;
+      font-size: 1rem;
+    }
+
+    .custom-amount-wrap input {
+      width: 100%;
+      padding: 12px 14px 12px 28px;
+      background: #0a1628;
+      border: 1px solid #1e3a6e;
+      border-radius: 6px;
+      color: #e8e0d0;
+      font-size: 1rem;
+    }
+
+    .custom-amount-wrap input:focus {
+      outline: none;
+      border-color: #c9a84c;
+    }
+
+    /* Divider */
+    hr { border: none; border-top: 1px solid #1e3a6e; margin: 24px 0; }
+
+    /* Fields */
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .field { margin-bottom: 14px; }
+
+    .field label, .field-row .field label {
+      display: block;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #c9a84c;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .field input,
+    .field select,
+    .field textarea,
+    .field-row .field input,
+    .field-row .field select {
+      width: 100%;
+      padding: 11px 14px;
+      background: #0a1628;
+      border: 1px solid #1e3a6e;
+      border-radius: 6px;
+      color: #e8e0d0;
+      font-size: 0.95rem;
+      font-family: Arial, sans-serif;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus,
+    .field-row .field input:focus,
+    .field-row .field select:focus {
+      outline: none;
+      border-color: #c9a84c;
+    }
+
+    .field select option { background: #0d1f3c; }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    /* Stripe card element */
+    #card-element {
+      padding: 12px 14px;
+      background: #0a1628;
+      border: 1px solid #1e3a6e;
+      border-radius: 6px;
+      transition: border-color 0.15s;
+    }
+
+    #card-element.focused { border-color: #c9a84c; }
+
+    #card-errors {
+      color: #e05c5c;
+      font-size: 0.82rem;
+      margin-top: 8px;
+      min-height: 18px;
+    }
+
+    /* Submit */
+    .donate-btn {
+      width: 100%;
+      padding: 16px;
+      background: #c9a84c;
+      color: #0d1f3c;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      margin-top: 24px;
+      transition: background 0.15s;
+    }
+
+    .donate-btn:hover:not(:disabled) { background: #e0bf6a; }
+    .donate-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Trust bar */
+    .trust-bar {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 20px;
+      font-size: 0.75rem;
+      color: #6a7d99;
+    }
+
+    .trust-bar span { display: flex; align-items: center; gap: 5px; }
+
+    /* Success screen */
+    #success-screen {
+      display: none;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    #success-screen .checkmark {
+      font-size: 3.5rem;
+      margin-bottom: 16px;
+    }
+
+    #success-screen h2 {
+      color: #c9a84c;
+      font-size: 1.4rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    #success-screen p {
+      color: #8a9ab5;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    #success-screen .bully {
+      margin-top: 20px;
+      font-size: 1.1rem;
+      color: #c9a84c;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+    }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #0d1f3c;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    input::placeholder, textarea::placeholder { color: #3a5070; }
+  </style>
+</head>
+<body>
+
+  <div class="logo-bar">
+    <img src="https://tamparoughriders.org/resources/Pictures/RR-Logo-white.png"
+         onerror="this.style.display='none'"
+         alt="Rough Riders Logo" />
+    <h1>1st U.S. Volunteer Cavalry Regiment</h1>
+    <p>Rough Riders, Inc. &nbsp;·&nbsp; Tampa, FL &nbsp;·&nbsp; Est. 1898</p>
+  </div>
+
+  <div class="card">
+
+    <!-- Amount -->
+    <div class="amount-section">
+      <div class="section-label">Select Donation Amount</div>
+      <div class="amount-grid">
+        <button class="amt-btn" data-amount="25">$25</button>
+        <button class="amt-btn" data-amount="50">$50</button>
+        <button class="amt-btn selected" data-amount="100">$100</button>
+        <button class="amt-btn" data-amount="250">$250</button>
+        <button class="amt-btn" data-amount="500">$500</button>
+        <button class="amt-btn" data-amount="1000">$1,000</button>
+      </div>
+      <div class="custom-amount-wrap">
+        <span>$</span>
+        <input type="number" id="custom-amount" placeholder="Other amount" min="1" step="1" />
+      </div>
+    </div>
+
+    <hr />
+
+    <!-- Donor info -->
+    <div class="section-label">Your Information</div>
+
+    <div class="field-row" style="margin-top:12px;">
+      <div class="field">
+        <label>First Name *</label>
+        <input type="text" id="first-name" placeholder="First" required />
+      </div>
+      <div class="field">
+        <label>Last Name *</label>
+        <input type="text" id="last-name" placeholder="Last" required />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Email Address *</label>
+      <input type="email" id="email" placeholder="your@email.com" required />
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Company / Organization</label>
+        <input type="text" id="company" placeholder="Optional" />
+      </div>
+      <div class="field">
+        <label>Your Rough Rider Contact</label>
+        <input type="text" id="rr-contact" placeholder="Member name (optional)" />
+      </div>
+    </div>
+
+    <hr />
+
+    <!-- Donation details -->
+    <div class="section-label">Donation Details</div>
+
+    <div class="field" style="margin-top:12px;">
+      <label>Direct My Donation To *</label>
+      <select id="donation-target">
+        <option value="Teddy Roosevelt Museum">Teddy Roosevelt Museum</option>
+        <option value="General Operations">General Operations</option>
+        <option value="Scholarship Fund">Scholarship Fund</option>
+        <option value="Community Outreach">Community Outreach</option>
+        <option value="Veterans Programs">Veterans Programs</option>
+        <option value="Where Most Needed">Where Most Needed</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Comments / Dedication</label>
+      <textarea id="dedication" placeholder="In memory of, in honor of, or any message..."></textarea>
+    </div>
+
+    <hr />
+
+    <!-- Payment -->
+    <div class="section-label">💳 Payment Information</div>
+
+    <div class="field" style="margin-top:12px;">
+      <label>Card Details *</label>
+      <div id="card-element"></div>
+      <div id="card-errors"></div>
+    </div>
+
+    <button class="donate-btn" id="donate-btn">🎖️ DONATE $100</button>
+
+    <div class="trust-bar">
+      <span>🔒 SSL Encrypted · Secured by Stripe</span>
+      <span>🏛️ 501(c)(3) · EIN 59-1867553</span>
+      <span>📧 Receipt sent to your email</span>
+    </div>
+
+    <!-- Success -->
+    <div id="success-screen">
+      <div class="checkmark">🎖️</div>
+      <h2>Thank You, Rough Rider!</h2>
+      <p>Your donation has been received.<br />A receipt has been sent to your email address.</p>
+      <p class="bully">Bully!</p>
+    </div>
+
+  </div>
+
+  <script>
+    // ── Stripe init ──────────────────────────────────────────────
+    const STRIPE_PK = 'pk_live_tOC3yVZcKWUUynwdigM6qZgL';
+    const stripe = Stripe(STRIPE_PK);
+    const elements = stripe.elements();
+
+    const cardElement = elements.create('card', {
+      style: {
+        base: {
+          color: '#e8e0d0',
+          fontFamily: 'Arial, sans-serif',
+          fontSize: '15px',
+          '::placeholder': { color: '#3a5070' },
+        },
+        invalid: { color: '#e05c5c' },
+      },
+    });
+
+    cardElement.mount('#card-element');
+
+    cardElement.on('focus', () => document.getElementById('card-element').classList.add('focused'));
+    cardElement.on('blur',  () => document.getElementById('card-element').classList.remove('focused'));
+    cardElement.on('change', (e) => {
+      document.getElementById('card-errors').textContent = e.error ? e.error.message : '';
+    });
+
+    // ── Amount picker ────────────────────────────────────────────
+    let selectedAmount = 100; // cents × 100 handled at submit
+
+    const amtBtns = document.querySelectorAll('.amt-btn');
+    const customInput = document.getElementById('custom-amount');
+    const donateBtn = document.getElementById('donate-btn');
+
+    function updateBtn(dollars) {
+      donateBtn.textContent = `🎖️ DONATE $${Number(dollars).toLocaleString()}`;
+    }
+
+    amtBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        amtBtns.forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedAmount = parseInt(btn.dataset.amount);
+        customInput.value = '';
+        updateBtn(selectedAmount);
+      });
+    });
+
+    customInput.addEventListener('input', () => {
+      amtBtns.forEach(b => b.classList.remove('selected'));
+      const val = parseFloat(customInput.value);
+      if (val > 0) {
+        selectedAmount = val;
+        updateBtn(val % 1 === 0 ? val : val.toFixed(2));
+      }
+    });
+
+    // ── Submit ───────────────────────────────────────────────────
+    donateBtn.addEventListener('click', async () => {
+      const firstName = document.getElementById('first-name').value.trim();
+      const lastName  = document.getElementById('last-name').value.trim();
+      const email     = document.getElementById('email').value.trim();
+
+      if (!firstName || !lastName) {
+        alert('Please enter your first and last name.');
+        return;
+      }
+      if (!email || !email.includes('@')) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+
+      const amountCents = Math.round(selectedAmount * 100);
+      if (amountCents < 100) {
+        alert('Minimum donation is $1.00.');
+        return;
+      }
+
+      donateBtn.disabled = true;
+      donateBtn.innerHTML = '<span class="spinner"></span>Processing…';
+      document.getElementById('card-errors').textContent = '';
+
+      try {
+        // 1. Create payment intent
+        const res = await fetch('/.netlify/functions/create-donation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: amountCents,
+            donationTarget:    document.getElementById('donation-target').value,
+            dedication:        document.getElementById('dedication').value.trim(),
+            donorName:         `${firstName} ${lastName}`,
+            donorEmail:        email,
+            company:           document.getElementById('company').value.trim(),
+            roughRiderContact: document.getElementById('rr-contact').value.trim(),
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || 'Server error');
+
+        // 2. Confirm card payment
+        const { error, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret, {
+          payment_method: {
+            card: cardElement,
+            billing_details: {
+              name:  `${firstName} ${lastName}`,
+              email: email,
+            },
+          },
+        });
+
+        if (error) throw new Error(error.message);
+
+        if (paymentIntent.status === 'succeeded') {
+          // Show success
+          document.querySelector('.amount-section').style.display = 'none';
+          document.querySelectorAll('hr, .field, .field-row, .section-label').forEach(el => el.style.display = 'none');
+          donateBtn.style.display = 'none';
+          document.querySelector('.trust-bar').style.display = 'none';
+          document.getElementById('success-screen').style.display = 'block';
+        }
+
+      } catch (err) {
+        document.getElementById('card-errors').textContent = err.message;
+        donateBtn.disabled = false;
+        donateBtn.innerHTML = `🎖️ DONATE $${Number(selectedAmount).toLocaleString()}`;
+      }
+    });
+  </script>
+</body>
+</html>
